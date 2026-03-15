@@ -184,7 +184,7 @@ jobs:
             ## Docker image
 
             ```bash
-            docker pull ghcr.io/bitkaio/codesteward-mcp:${{ github.ref_name }}
+            docker pull ghcr.io/bitkaio/codesteward:${{ github.ref_name }}
             ```
 
-            Full setup guide: [AGENT_SETUP.md](https://github.com/bitkaio/codesteward-mcp/blob/main/AGENT_SETUP.md)
+            Full setup guide: [AGENT_SETUP.md](https://github.com/bitkaio/codesteward/blob/main/AGENT_SETUP.md)

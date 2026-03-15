@@ -73,4 +73,4 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
     || exit 1
 
 ENTRYPOINT ["codesteward-mcp"]
-CMD ["--transport", "http"]
+CMD ["--transport", "sse"]

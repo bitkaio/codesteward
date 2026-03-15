@@ -51,7 +51,7 @@ services:
   codesteward:
     # Published image (recommended) — pulls from GitHub Container Registry.
     # Replace the tag with a specific version (e.g. :0.1.0) to pin to a release.
-    image: ghcr.io/bitkaio/codesteward-mcp:latest
+    image: ghcr.io/bitkaio/codesteward:latest
     # ── Local build alternative (uncomment to build from source) ──────────────
     # build:
     #   context: .
