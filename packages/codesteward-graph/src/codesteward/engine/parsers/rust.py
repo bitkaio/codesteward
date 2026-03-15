@@ -1,8 +1,9 @@
 """Rust parser (tree-sitter AST). Requires ``tree-sitter-rust`` (install with ``uv pip install -e '.[graph-rust]'``).
 """
 
-import structlog
 from typing import Any
+
+import structlog
 
 from ._ast_utils import TreeSitterBase, _walk
 from .base import GraphEdge, LanguageParser, LexicalNode, ParseResult

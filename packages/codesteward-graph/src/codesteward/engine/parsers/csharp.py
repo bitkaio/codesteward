@@ -1,8 +1,9 @@
 """C# parser (tree-sitter AST). Requires ``tree-sitter-c-sharp`` (install with ``uv pip install -e '.[graph-csharp]'``).
 """
 
-import structlog
 from typing import Any
+
+import structlog
 
 from ._ast_utils import TreeSitterBase, _walk
 from .base import GraphEdge, LanguageParser, LexicalNode, ParseResult

@@ -1,8 +1,9 @@
 """Kotlin parser (tree-sitter AST). Requires ``tree-sitter-kotlin`` (install with ``uv pip install -e '.[graph-kotlin]'``).
 """
 
-import structlog
 from typing import Any
+
+import structlog
 
 from ._ast_utils import TreeSitterBase, _walk
 from .base import GraphEdge, LanguageParser, LexicalNode, ParseResult
