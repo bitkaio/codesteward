@@ -291,7 +291,8 @@ class Neo4jWriter:
                 UNWIND $edges AS e
                 MATCH (src:LexicalNode {{node_id: e.source_id}})
                 MERGE (tgt:LexicalNode {{node_id: e.target_id}})
-                  ON CREATE SET tgt.name = e.target_name, tgt.node_type = 'external'
+                  ON CREATE SET tgt.name = e.target_name, tgt.node_type = 'external',
+                                tgt.tenant_id = e.tenant_id, tgt.repo_id = e.repo_id
                 MERGE (src)-[r:{rel_type} {{edge_id: e.edge_id}}]->(tgt)
                 SET r.file = e.file, r.line = e.line
                 """
@@ -300,6 +301,8 @@ class Neo4jWriter:
                         "source_id": edge.source_id,
                         "target_id": edge.target_id,
                         "target_name": edge.target_name,
+                        "tenant_id": edge.tenant_id,
+                        "repo_id": edge.repo_id,
                         "edge_id": edge.edge_id,
                         "file": edge.file,
                         "line": edge.line,

@@ -11,6 +11,19 @@ Both packages share a version number and are always released together.
 
 ## [Unreleased]
 
+## [0.2.2] — 2026-03-16
+
+### Fixed — codesteward-graph
+
+- External target nodes (guards, unresolved calls) now have `tenant_id` and `repo_id` set on
+  creation so they are properly isolated per-tenant in Neo4j
+
+### Changed — codesteward-mcp
+
+- Referential query now returns `to_node_type` alongside `to_name` and `to_file`, so agents can
+  distinguish external-library guard targets (`to_node_type: external`, `to_file: null`) from
+  unresolved internal references
+
 ## [0.2.1] — 2026-03-15
 
 ### Fixed — codesteward-mcp
@@ -78,7 +91,8 @@ Both packages share a version number and are always released together.
   Claude Desktop (`.mcp.json`, `.cursorrules`, `GEMINI.md`, `.windsurfrules`,
   `copilot-instructions.md`, `CLAUDE.md`)
 
-[Unreleased]: https://github.com/bitkaio/codesteward/compare/v0.2.1...HEAD
+[Unreleased]: https://github.com/bitkaio/codesteward/compare/v0.2.2...HEAD
+[0.2.2]: https://github.com/bitkaio/codesteward/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/bitkaio/codesteward/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/bitkaio/codesteward/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/bitkaio/codesteward/releases/tag/v0.1.0

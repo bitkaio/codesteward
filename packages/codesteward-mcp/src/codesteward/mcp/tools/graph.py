@@ -53,6 +53,7 @@ _CYPHER_TEMPLATES: dict[str, str] = {
         RETURN src.name AS from_name, src.file AS from_file,
                type(r) AS edge_type,
                tgt.name AS to_name, tgt.file AS to_file,
+               tgt.node_type AS to_node_type,
                r.line AS line
         ORDER BY src.file, r.line
         LIMIT $limit
