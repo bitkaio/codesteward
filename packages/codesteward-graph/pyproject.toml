@@ -1,0 +1,71 @@
+[project]
+name = "codesteward-graph"
+version = "0.1.0"
+description = "Multi-language structural code graph builder — 13 tree-sitter parsers + Neo4j writer"
+readme = "README.md"
+requires-python = ">=3.12"
+license = {text = "BSD-3-Clause"}
+authors = [
+    {name = "bitkaio LLC"},
+]
+keywords = ["code-graph", "tree-sitter", "ast", "static-analysis", "neo4j", "code-intelligence"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: BSD Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Quality Assurance",
+    "Typing :: Typed",
+]
+dependencies = [
+    "structlog>=24.0",
+    "pyyaml>=6.0",
+    "neo4j>=5.0",
+]
+
+[project.urls]
+Homepage   = "https://github.com/bitkaio/codesteward-mcp"
+Repository = "https://github.com/bitkaio/codesteward-mcp"
+Issues     = "https://github.com/bitkaio/codesteward-mcp/issues"
+Changelog  = "https://github.com/bitkaio/codesteward-mcp/blob/main/CHANGELOG.md"
+
+[project.optional-dependencies]
+# Core tree-sitter grammars (TypeScript / JS / Python / Java)
+graph = [
+    "tree-sitter>=0.24",
+    "tree-sitter-typescript>=0.23",
+    "tree-sitter-javascript>=0.23",
+    "tree-sitter-python>=0.23",
+    "tree-sitter-java>=0.23",
+]
+graph-csharp = ["tree-sitter>=0.21", "tree-sitter-c-sharp>=0.21"]
+graph-kotlin = ["tree-sitter>=0.21", "tree-sitter-kotlin>=0.21"]
+graph-scala  = ["tree-sitter>=0.21", "tree-sitter-scala>=0.21"]
+graph-go     = ["tree-sitter>=0.21", "tree-sitter-go>=0.21"]
+graph-c      = ["tree-sitter>=0.21", "tree-sitter-c>=0.21"]
+graph-cpp    = ["tree-sitter>=0.21", "tree-sitter-cpp>=0.21"]
+graph-rust   = ["tree-sitter>=0.21", "tree-sitter-rust>=0.21"]
+graph-php    = ["tree-sitter>=0.21", "tree-sitter-php>=0.21"]
+# All 14 languages at once
+graph-all = [
+    "codesteward-graph[graph]",
+    "codesteward-graph[graph-csharp]",
+    "codesteward-graph[graph-kotlin]",
+    "codesteward-graph[graph-scala]",
+    "codesteward-graph[graph-go]",
+    "codesteward-graph[graph-c]",
+    "codesteward-graph[graph-cpp]",
+    "codesteward-graph[graph-rust]",
+    "codesteward-graph[graph-php]",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+# codesteward.engine — namespace package, no __init__.py at codesteward/ level
+packages = ["src/codesteward"]

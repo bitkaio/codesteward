@@ -1,0 +1,53 @@
+[project]
+name = "codesteward-mcp"
+version = "0.1.0"
+description = "Codesteward MCP Graph Server — structural code graph queries over HTTP+SSE or stdio"
+readme = "README.md"
+requires-python = ">=3.12"
+license = {text = "BSD-3-Clause"}
+authors = [
+    {name = "bitkaio LLC"},
+]
+keywords = ["mcp", "code-graph", "tree-sitter", "static-analysis", "neo4j", "ai", "claude", "cursor"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: BSD Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Quality Assurance",
+    "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
+    "Typing :: Typed",
+]
+dependencies = [
+    "codesteward-graph==0.1.0",
+    "mcp>=1.0",
+    "uvicorn[standard]>=0.30",
+    "pydantic>=2.0",
+    "pydantic-settings>=2.0",
+    "structlog>=24.0",
+    "pyyaml>=6.0",
+]
+
+[project.scripts]
+codesteward-mcp = "codesteward.mcp.server:main"
+
+[project.urls]
+Homepage   = "https://github.com/bitkaio/codesteward-mcp"
+Repository = "https://github.com/bitkaio/codesteward-mcp"
+Issues     = "https://github.com/bitkaio/codesteward-mcp/issues"
+Changelog  = "https://github.com/bitkaio/codesteward-mcp/blob/main/CHANGELOG.md"
+
+[project.optional-dependencies]
+# Re-export language extras so users can do: uv add codesteward-mcp[graph-all]
+graph     = ["codesteward-graph[graph]"]
+graph-all = ["codesteward-graph[graph-all]"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+# codesteward.mcp — namespace package, no __init__.py at codesteward/ level
+packages = ["src/codesteward"]
