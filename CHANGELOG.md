@@ -11,6 +11,35 @@ Both packages share a version number and are always released together.
 
 ## [Unreleased]
 
+## [0.2.0] — 2026-03-15
+
+### Fixed — codesteward-graph
+
+- `GraphEdge` model was missing `confidence` and `source` fields required by `graph_augment`
+- Python parser: `is_async` flag not set for `async def` functions under tree-sitter-python ≥ 0.25
+  (grammar now emits `function_definition` with an `async` child rather than `async_function_definition`)
+- tree-sitter `Parser` initialisation updated to the ≥ 0.22 API (`Parser(language)` instead of
+  `Parser().set_language(language)`)
+- Optional-language test classes (Go, C, C++, Rust, PHP, C#, Kotlin, Scala) now skip gracefully
+  with `pytest.importorskip` when the corresponding grammar package is not installed
+- PyPI classifier corrected from `BSD Software License` to `BSD License`
+
+### Fixed — codesteward-mcp
+
+- Default transport switched from Streamable HTTP (`http`) to SSE (`sse`) so that Claude Code
+  and other clients that do not send `Accept: text/event-stream` can connect without a 406 error
+- SSE transport now served via `mcp.sse_app()` + uvicorn (consistent with the `http` branch)
+- Docker image: `mkdir /workspace` moved before `USER codesteward` to avoid permission denied
+- Health check replaced with a TCP socket probe (works on both SSE and HTTP transports)
+- `TRANSPORT` environment variable default updated to `sse` in `Dockerfile.mcp` and
+  `docker-compose.yml`
+- CI and release workflows: `uv sync` now installs `--extra graph` so core grammar tests run
+- All template `.mcp.json` / agent config files updated to point to `/sse` endpoint
+
+### Changed — codesteward-mcp
+
+- MCP endpoint URL changed from `http://localhost:3000/mcp` to `http://localhost:3000/sse`
+
 ## [0.1.0] — 2026-03-15
 
 ### Added — codesteward-graph
@@ -42,5 +71,6 @@ Both packages share a version number and are always released together.
   Claude Desktop (`.mcp.json`, `.cursorrules`, `GEMINI.md`, `.windsurfrules`,
   `copilot-instructions.md`, `CLAUDE.md`)
 
-[Unreleased]: https://github.com/bitkaio/codesteward-mcp/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/bitkaio/codesteward-mcp/releases/tag/v0.1.0
+[Unreleased]: https://github.com/bitkaio/codesteward/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/bitkaio/codesteward/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/bitkaio/codesteward/releases/tag/v0.1.0
