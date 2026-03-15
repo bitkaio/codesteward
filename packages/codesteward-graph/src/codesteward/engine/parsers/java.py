@@ -392,10 +392,10 @@ class JavaParser(TreeSitterBase, LanguageParser):
         """
         for child in annotation_node.children:
             if child.type == "identifier":
-                return child.text.decode()
+                return str(child.text.decode())
             if child.type == "scoped_identifier":
                 name_part = child.child_by_field_name("name")
-                return name_part.text.decode() if name_part else child.text.decode()
+                return str(name_part.text.decode()) if name_part else str(child.text.decode())
         return None
 
     # ------------------------------------------------------------------
@@ -429,7 +429,7 @@ class JavaParser(TreeSitterBase, LanguageParser):
             params_node = node.child_by_field_name("parameters")
             if not params_node:
                 continue
-            params: list[dict] = []
+            params: list[dict[str, Any]] = []
             for param in params_node.children:
                 if param.type != "formal_parameter":
                     continue
@@ -439,7 +439,7 @@ class JavaParser(TreeSitterBase, LanguageParser):
             if params:
                 fn_node.metadata["parameters"] = params
 
-    def _java_param_info(self, param_node: Any) -> dict | None:
+    def _java_param_info(self, param_node: Any) -> dict[str, Any] | None:
         """Extract name and type from a Java ``formal_parameter`` AST node.
 
         Args:

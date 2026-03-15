@@ -2,6 +2,7 @@
 """
 
 import structlog
+from typing import Any
 
 from ._ast_utils import TreeSitterBase, _walk
 from .base import GraphEdge, LanguageParser, LexicalNode, ParseResult
@@ -296,7 +297,7 @@ class ScalaParser(TreeSitterBase, LanguageParser):
             fn = fn_map.get(name_node.text.decode())
             if fn is None:
                 continue
-            params: list[dict] = []
+            params: list[dict[str, Any]] = []
             for child in node.children:
                 if child.type != "parameters":
                     continue

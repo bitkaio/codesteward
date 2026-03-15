@@ -146,13 +146,13 @@ def build_mcp_server(config_file: str | None = None) -> tuple[FastMCP, Any]:
             YAML summary: mode (full|incremental), files_parsed, nodes (dict
             with total), edges (dict with total), duration_ms, neo4j_connected.
         """
-        return await tool_graph_rebuild(
+        return str(await tool_graph_rebuild(
             repo_path=repo_path or cfg.default_repo_path,
             tenant_id=tenant_id or cfg.default_tenant_id,
             repo_id=repo_id or cfg.default_repo_id,
             changed_files=changed_files,
             cfg=cfg,
-        )
+        ))
 
     # ── codebase_graph_query ─────────────────────────────────────────────────
 
@@ -204,21 +204,21 @@ def build_mcp_server(config_file: str | None = None) -> tuple[FastMCP, Any]:
             Each result row's ``node_id`` field can be used as ``source_id``
             or ``target_id`` in ``graph_augment``.
         """
-        return await tool_codebase_graph_query(
+        return str(await tool_codebase_graph_query(
             query_type=query_type,
             query=query,
             tenant_id=tenant_id or cfg.default_tenant_id,
             repo_id=repo_id or cfg.default_repo_id,
             limit=limit,
             cfg=cfg,
-        )
+        ))
 
     # ── graph_augment ────────────────────────────────────────────────────────
 
     @mcp.tool()
     async def graph_augment(
         agent_id: str,
-        additions: list[dict],
+        additions: list[dict[str, Any]],
         tenant_id: str = "",
         repo_id: str = "",
     ) -> str:
@@ -257,13 +257,13 @@ def build_mcp_server(config_file: str | None = None) -> tuple[FastMCP, Any]:
             YAML summary: status (ok|partial), written count, skipped count,
             edges list, skip_details (explains why each item was rejected).
         """
-        return await tool_graph_augment(
+        return str(await tool_graph_augment(
             tenant_id=tenant_id or cfg.default_tenant_id,
             repo_id=repo_id or cfg.default_repo_id,
             agent_id=agent_id,
             additions=additions,
             cfg=cfg,
-        )
+        ))
 
     # ── graph_status ─────────────────────────────────────────────────────────
 
@@ -290,11 +290,11 @@ def build_mcp_server(config_file: str | None = None) -> tuple[FastMCP, Any]:
             (ISO timestamp or null), ``nodes`` (dict with ``total`` count or
             null), ``edges`` (dict with ``total`` count or null).
         """
-        return await tool_graph_status(
+        return str(await tool_graph_status(
             tenant_id=tenant_id or cfg.default_tenant_id,
             repo_id=repo_id or cfg.default_repo_id,
             cfg=cfg,
-        )
+        ))
 
     return mcp, cfg
 

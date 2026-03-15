@@ -120,23 +120,23 @@ def _register_new_languages() -> None:
     import contextlib
 
     with contextlib.suppress(Exception):
-        from . import csharp as _  # noqa: F401
+        from . import csharp as _csharp  # noqa: F401
     with contextlib.suppress(Exception):
-        from . import kotlin as _  # noqa: F401
+        from . import kotlin as _kotlin  # noqa: F401
     with contextlib.suppress(Exception):
-        from . import scala as _  # noqa: F401
+        from . import scala as _scala  # noqa: F401
     with contextlib.suppress(Exception):
-        from . import cobol as _  # noqa: F401
+        from . import cobol as _cobol  # noqa: F401
     with contextlib.suppress(Exception):
-        from . import go as _  # noqa: F401
+        from . import go as _go  # noqa: F401
     with contextlib.suppress(Exception):
-        from . import c as _  # noqa: F401
+        from . import c as _c  # noqa: F401
     with contextlib.suppress(Exception):
-        from . import cpp as _  # noqa: F401
+        from . import cpp as _cpp  # noqa: F401
     with contextlib.suppress(Exception):
-        from . import rust as _  # noqa: F401
+        from . import rust as _rust  # noqa: F401
     with contextlib.suppress(Exception):
-        from . import php as _  # noqa: F401
+        from . import php as _php  # noqa: F401
 
 
 _register_new_languages()

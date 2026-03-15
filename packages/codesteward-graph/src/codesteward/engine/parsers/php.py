@@ -400,14 +400,14 @@ class PhpParser(TreeSitterBase, LanguageParser):
         Returns:
             Callee name string, or None if unresolvable.
         """
-        if call_node.type == "function_call_expression":  # type: ignore[union-attr]
-            fn = call_node.child_by_field_name("function")  # type: ignore[union-attr]
+        if call_node.type == "function_call_expression":  # type: ignore[attr-defined]
+            fn = call_node.child_by_field_name("function")  # type: ignore[attr-defined]
             if fn and fn.type == "name":
-                return fn.text.decode()
-        elif call_node.type in ("member_call_expression", "scoped_call_expression"):  # type: ignore[union-attr]
-            name_node = call_node.child_by_field_name("name")  # type: ignore[union-attr]
+                return str(fn.text.decode())
+        elif call_node.type in ("member_call_expression", "scoped_call_expression"):  # type: ignore[attr-defined]
+            name_node = call_node.child_by_field_name("name")  # type: ignore[attr-defined]
             if name_node and name_node.type == "name":
-                return name_node.text.decode()
+                return str(name_node.text.decode())
         return None
 
     # ------------------------------------------------------------------
@@ -546,21 +546,21 @@ class PhpParser(TreeSitterBase, LanguageParser):
         middlewares: list[str] = []
         node = chain_node
         while node is not None:
-            if node.type == "member_call_expression":
-                name_n = node.child_by_field_name("name")
+            if node.type == "member_call_expression":  # type: ignore[attr-defined]
+                name_n = node.child_by_field_name("name")  # type: ignore[attr-defined]
                 if name_n and name_n.text.decode() == "middleware":
-                    args = node.child_by_field_name("arguments")
+                    args = node.child_by_field_name("arguments")  # type: ignore[attr-defined]
                     if args:
                         for child in _walk(args):
                             if child.type == "string":
                                 text = child.text.decode().strip("'\"")
                                 if text:
                                     middlewares.append(text)
-                node = node.child_by_field_name("object")
-            elif node.type == "scoped_call_expression":
-                name_n = node.child_by_field_name("name")
+                node = node.child_by_field_name("object")  # type: ignore[attr-defined]
+            elif node.type == "scoped_call_expression":  # type: ignore[attr-defined]
+                name_n = node.child_by_field_name("name")  # type: ignore[attr-defined]
                 if name_n and name_n.text.decode() == "middleware":
-                    args = node.child_by_field_name("arguments")
+                    args = node.child_by_field_name("arguments")  # type: ignore[attr-defined]
                     if args:
                         for child in _walk(args):
                             if child.type == "string":
@@ -586,7 +586,7 @@ class PhpParser(TreeSitterBase, LanguageParser):
         Returns:
             Handler class name string, or None if not extractable.
         """
-        args_node = route_call.child_by_field_name("arguments")
+        args_node = route_call.child_by_field_name("arguments")  # type: ignore[attr-defined]
         if args_node is None:
             return None
 
@@ -609,7 +609,7 @@ class PhpParser(TreeSitterBase, LanguageParser):
                 # first child is the class name (name node)
                 for inner in child.children:
                     if inner.type == "name":
-                        return inner.text.decode()
+                        return str(inner.text.decode())
 
         return None
 

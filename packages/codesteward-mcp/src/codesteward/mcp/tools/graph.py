@@ -150,11 +150,11 @@ async def tool_graph_rebuild(
         )
     except Exception as exc:
         log.error("graph_rebuild_failed", error=str(exc))
-        return yaml.safe_dump(
+        return str(yaml.safe_dump(
             {"status": "error", "error": str(exc),
              "repo_id": repo_id, "tenant_id": tenant_id},
             default_flow_style=False,
-        )
+        ))
     finally:
         if driver is not None:
             await driver.close()
@@ -181,7 +181,7 @@ async def tool_graph_rebuild(
         nodes=summary.get("nodes", {}).get("total"),
         edges=summary.get("edges", {}).get("total"),
     )
-    return yaml.safe_dump(summary, default_flow_style=False, sort_keys=True)
+    return str(yaml.safe_dump(summary, default_flow_style=False, sort_keys=True))
 
 
 async def tool_codebase_graph_query(
@@ -209,7 +209,7 @@ async def tool_codebase_graph_query(
     driver = _make_async_driver(cfg)
 
     if driver is None:
-        return yaml.safe_dump({
+        return str(yaml.safe_dump({
             "stub": True,
             "reason": "Neo4j not configured — set NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD",
             "query_type": query_type,
@@ -218,7 +218,7 @@ async def tool_codebase_graph_query(
             "repo_id": repo_id,
             "total": 0,
             "results": [],
-        }, default_flow_style=False)
+        }, default_flow_style=False))
 
     # Build Cypher + params
     if query_type == "cypher":
@@ -230,10 +230,10 @@ async def tool_codebase_graph_query(
         template = _CYPHER_TEMPLATES.get(query_type)
         if template is None:
             await driver.close()
-            return yaml.safe_dump({
+            return str(yaml.safe_dump({
                 "error": f"unknown query_type '{query_type}'",
                 "valid_types": list(_CYPHER_TEMPLATES) + ["cypher"],
-            }, default_flow_style=False)
+            }, default_flow_style=False))
         cypher = template
         params = {
             "tenant_id": tenant_id, "repo_id": repo_id,
@@ -253,14 +253,14 @@ async def tool_codebase_graph_query(
             "total": len(records),
             "results": records,
         }
-        return yaml.safe_dump(output, default_flow_style=False, allow_unicode=True)
+        return str(yaml.safe_dump(output, default_flow_style=False, allow_unicode=True))
 
     except Exception as exc:
         log.error("codebase_graph_query_failed", query_type=query_type, error=str(exc))
-        return yaml.safe_dump(
+        return str(yaml.safe_dump(
             {"error": str(exc), "query_type": query_type},
             default_flow_style=False,
-        )
+        ))
     finally:
         await driver.close()
 
@@ -290,8 +290,8 @@ async def tool_graph_augment(
 
     driver = _make_async_driver(cfg)
     source_tag = f"agent:{agent_id}"
-    written: list[dict] = []
-    skipped: list[dict] = []
+    written: list[dict[str, Any]] = []
+    skipped: list[dict[str, Any]] = []
 
     for item in additions:
         edge_type = item.get("edge_type", "")
@@ -377,7 +377,7 @@ async def tool_graph_augment(
     if driver is not None:
         await driver.close()
 
-    return yaml.safe_dump({
+    return str(yaml.safe_dump({
         "status": "ok" if not skipped else "partial",
         "agent_id": agent_id,
         "written": len(written),
@@ -385,7 +385,7 @@ async def tool_graph_augment(
         "edges": written,
         "skip_details": skipped,
         "neo4j_connected": driver is not None,
-    }, default_flow_style=False, sort_keys=True)
+    }, default_flow_style=False, sort_keys=True))
 
 
 async def tool_graph_status(
@@ -448,4 +448,4 @@ async def tool_graph_status(
         finally:
             await driver.close()
 
-    return yaml.safe_dump(status, default_flow_style=False, sort_keys=True)
+    return str(yaml.safe_dump(status, default_flow_style=False, sort_keys=True))

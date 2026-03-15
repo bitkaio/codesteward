@@ -144,12 +144,7 @@ def _make_ts_parser(language_capsule: Any) -> Any:
     from tree_sitter import Language, Parser  # noqa: PLC0415
 
     lang = Language(language_capsule)
-    try:
-        return Parser(lang)  # 0.24+
-    except TypeError:
-        p = Parser()
-        p.set_language(lang)  # 0.21–0.23
-        return p
+    return Parser(lang)
 
 
 # ---------------------------------------------------------------------------
@@ -180,7 +175,7 @@ def is_available(language: str = "typescript") -> bool:
 # ---------------------------------------------------------------------------
 
 
-def _walk(node: Any):
+def _walk(node: Any) -> Any:
     """Depth-first generator yielding every node in the AST subtree.
 
     Args:
@@ -464,7 +459,7 @@ class TreeSitterBase:
             return None
 
         if fn.type == "identifier":
-            name = fn.text.decode()
+            name = str(fn.text.decode())
             if name in _BUILTIN_NAMES:
                 return None
             return name
@@ -472,12 +467,12 @@ class TreeSitterBase:
         if fn.type == "member_expression":
             # JS/TS: obj.method() — take the property (method name)
             prop = fn.child_by_field_name("property")
-            return prop.text.decode() if prop else None
+            return str(prop.text.decode()) if prop else None
 
         if fn.type == "attribute":
             # Python: obj.method() — take the attribute (method name)
             attr = fn.child_by_field_name("attribute")
-            return attr.text.decode() if attr else None
+            return str(attr.text.decode()) if attr else None
 
         if fn.type == "await_expression":
             # Python: await some_call() — unwrap and recurse

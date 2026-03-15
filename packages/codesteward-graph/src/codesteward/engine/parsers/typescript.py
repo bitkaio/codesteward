@@ -654,18 +654,18 @@ class TypeScriptParser(TreeSitterBase, LanguageParser):
         """
         for child in decorator_node.children:
             if child.type == "identifier":
-                return child.text.decode()
+                return str(child.text.decode())
             if child.type == "call_expression":
                 fn = child.child_by_field_name("function")
                 if fn:
                     if fn.type == "identifier":
-                        return fn.text.decode()
+                        return str(fn.text.decode())
                     if fn.type == "member_expression":
                         prop = fn.child_by_field_name("property")
-                        return prop.text.decode() if prop else fn.text.decode()
+                        return str(prop.text.decode()) if prop else str(fn.text.decode())
             if child.type == "member_expression":
                 prop = child.child_by_field_name("property")
-                return prop.text.decode() if prop else child.text.decode()
+                return str(prop.text.decode()) if prop else str(child.text.decode())
         return None
 
     # ------------------------------------------------------------------
@@ -841,7 +841,7 @@ class TypeScriptParser(TreeSitterBase, LanguageParser):
             params_node = node.child_by_field_name("parameters")
             if not params_node:
                 continue
-            params: list[dict] = []
+            params: list[dict[str, Any]] = []
             for param in params_node.children:
                 if param.type in (",", "(", ")"):
                     continue
@@ -851,7 +851,7 @@ class TypeScriptParser(TreeSitterBase, LanguageParser):
             if params:
                 fn_node.metadata["parameters"] = params
 
-    def _ts_param_info(self, param_node: Any) -> dict | None:
+    def _ts_param_info(self, param_node: Any) -> dict[str, Any] | None:
         """Extract name and type from a TypeScript parameter AST node.
 
         Args:

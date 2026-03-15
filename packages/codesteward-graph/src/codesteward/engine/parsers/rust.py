@@ -2,6 +2,7 @@
 """
 
 import structlog
+from typing import Any
 
 from ._ast_utils import TreeSitterBase, _walk
 from .base import GraphEdge, LanguageParser, LexicalNode, ParseResult
@@ -221,7 +222,7 @@ class RustParser(TreeSitterBase, LanguageParser):
 
         # attribute_item immediately precedes its target node in the AST children
         # Walk parent-level children looking for (attribute_item*, struct/fn)
-        def _process_children(children: list) -> None:
+        def _process_children(children: list[Any]) -> None:
             pending_attrs: list[str] = []
             for child in children:
                 if child.type == "attribute_item":
@@ -258,7 +259,7 @@ class RustParser(TreeSitterBase, LanguageParser):
                 else:
                     pending_attrs.clear()
 
-        _process_children(root.children)
+        _process_children(root.children)  # type: ignore[attr-defined]
         return edges
 
     def _rust_attr_name(self, attr_item_node: object) -> str | None:
@@ -270,15 +271,15 @@ class RustParser(TreeSitterBase, LanguageParser):
         Returns:
             Attribute name string, or None if unresolvable.
         """
-        for child in attr_item_node.children:  # type: ignore[union-attr]
+        for child in attr_item_node.children:  # type: ignore[attr-defined]
             if child.type == "attribute":
                 # attribute node: first identifier child is the name
                 for inner in child.children:
                     if inner.type == "identifier":
-                        return inner.text.decode()
+                        return str(inner.text.decode())
                     if inner.type == "scoped_identifier":
                         name_node = inner.child_by_field_name("name")
-                        return name_node.text.decode() if name_node else None
+                        return str(name_node.text.decode()) if name_node else None
         return None
 
     # ------------------------------------------------------------------
@@ -396,7 +397,7 @@ class RustParser(TreeSitterBase, LanguageParser):
         Returns:
             Handler function name, or None if not found.
         """
-        args_node = route_call.child_by_field_name("arguments")
+        args_node = route_call.child_by_field_name("arguments")  # type: ignore[attr-defined]
         if args_node is None:
             return None
         for arg in _walk(args_node):
@@ -413,7 +414,7 @@ class RustParser(TreeSitterBase, LanguageParser):
                 continue
             for a in inner_args.children:
                 if a.type == "identifier":
-                    return a.text.decode()
+                    return str(a.text.decode())
         return None
 
     def _actix_find_wrap(self, chain_node: object) -> list[str]:
@@ -431,14 +432,14 @@ class RustParser(TreeSitterBase, LanguageParser):
         middlewares: list[str] = []
         node = chain_node
         while node is not None:
-            if node.type != "call_expression":
+            if node.type != "call_expression":  # type: ignore[attr-defined]
                 break
-            fn_f = node.child_by_field_name("function")
+            fn_f = node.child_by_field_name("function")  # type: ignore[attr-defined]
             if fn_f is None or fn_f.type != "field_expression":
                 break
             fld = fn_f.child_by_field_name("field")
             if fld and fld.text.decode() == "wrap":
-                args = node.child_by_field_name("arguments")
+                args = node.child_by_field_name("arguments")  # type: ignore[attr-defined]
                 if args:
                     for a in args.children:
                         if a.type == "identifier":

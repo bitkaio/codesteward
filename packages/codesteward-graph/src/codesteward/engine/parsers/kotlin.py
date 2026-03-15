@@ -2,6 +2,7 @@
 """
 
 import structlog
+from typing import Any
 
 from ._ast_utils import TreeSitterBase, _walk
 from .base import GraphEdge, LanguageParser, LexicalNode, ParseResult
@@ -323,7 +324,7 @@ class KotlinParser(TreeSitterBase, LanguageParser):
             )
             if param_list is None:
                 continue
-            params: list[dict] = []
+            params: list[dict[str, Any]] = []
             for p in param_list.children:
                 if p.type != "parameter":
                     continue

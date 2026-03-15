@@ -22,19 +22,19 @@ def _c_function_name(decl_node: object) -> str | None:
     """
     if decl_node is None:
         return None
-    if decl_node.type == "function_declarator":  # type: ignore[union-attr]
-        inner = decl_node.child_by_field_name("declarator")  # type: ignore[union-attr]
+    if decl_node.type == "function_declarator":  # type: ignore[attr-defined]
+        inner = decl_node.child_by_field_name("declarator")  # type: ignore[attr-defined]
         if inner is None:
             return None
         if inner.type in ("identifier", "field_identifier"):
-            return inner.text.decode()  # type: ignore[union-attr]
+            return str(inner.text.decode())
         # Recurse for pointer_declarator wrapping
         return _c_function_name(inner)
-    if decl_node.type == "pointer_declarator":  # type: ignore[union-attr]
-        inner = decl_node.child_by_field_name("declarator")  # type: ignore[union-attr]
+    if decl_node.type == "pointer_declarator":  # type: ignore[attr-defined]
+        inner = decl_node.child_by_field_name("declarator")  # type: ignore[attr-defined]
         return _c_function_name(inner)
-    if decl_node.type in ("identifier", "field_identifier"):  # type: ignore[union-attr]
-        return decl_node.text.decode()  # type: ignore[union-attr]
+    if decl_node.type in ("identifier", "field_identifier"):  # type: ignore[attr-defined]
+        return str(decl_node.text.decode())  # type: ignore[attr-defined]
     return None
 
 

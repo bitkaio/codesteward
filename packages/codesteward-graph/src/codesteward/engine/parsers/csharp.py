@@ -2,6 +2,7 @@
 """
 
 import structlog
+from typing import Any
 
 from ._ast_utils import TreeSitterBase, _walk
 from .base import GraphEdge, LanguageParser, LexicalNode, ParseResult
@@ -335,7 +336,7 @@ class CSharpParser(TreeSitterBase, LanguageParser):
             )
             if param_list is None:
                 continue
-            params: list[dict] = []
+            params: list[dict[str, Any]] = []
             for p in param_list.children:
                 if p.type != "parameter":
                     continue
@@ -468,7 +469,7 @@ class CSharpParser(TreeSitterBase, LanguageParser):
         Returns:
             Handler function name, or None if not resolvable.
         """
-        arg_list = inv_node.child_by_field_name("argument_list")
+        arg_list = inv_node.child_by_field_name("argument_list")  # type: ignore[attr-defined]
         if arg_list is None:
             return None
         args = [c for c in arg_list.children if c.type == "argument"]
@@ -477,10 +478,10 @@ class CSharpParser(TreeSitterBase, LanguageParser):
         handler_arg = args[1]
         for child in handler_arg.children:
             if child.type == "identifier":
-                return child.text.decode()
+                return str(child.text.decode())
             if child.type == "member_access_expression":
                 name_n = child.child_by_field_name("name")
-                return name_n.text.decode() if name_n else None
+                return str(name_n.text.decode()) if name_n else None
         return None
 
     def _cs_chain_requires_auth(self, chain_node: object) -> bool:
@@ -499,8 +500,8 @@ class CSharpParser(TreeSitterBase, LanguageParser):
         _AUTH_METHODS = frozenset({"RequireAuthorization", "Authorize"})
         node = chain_node
         while node is not None:
-            if node.type == "invocation_expression":
-                fn = node.child_by_field_name("function") or node.child_by_field_name("expression")
+            if node.type == "invocation_expression":  # type: ignore[attr-defined]
+                fn = node.child_by_field_name("function") or node.child_by_field_name("expression")  # type: ignore[attr-defined]
                 if fn and fn.type == "member_access_expression":
                     name_n = fn.child_by_field_name("name")
                     if name_n and name_n.text.decode() in _AUTH_METHODS:

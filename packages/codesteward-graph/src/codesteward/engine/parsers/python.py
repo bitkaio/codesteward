@@ -433,18 +433,18 @@ class PythonParser(TreeSitterBase, LanguageParser):
         """
         for child in decorator_node.children:
             if child.type == "identifier":
-                return child.text.decode()
+                return str(child.text.decode())
             if child.type == "attribute":
                 attr = child.child_by_field_name("attribute")
-                return attr.text.decode() if attr else child.text.decode()
+                return str(attr.text.decode()) if attr else str(child.text.decode())
             if child.type == "call":
                 fn = child.child_by_field_name("function")
                 if fn:
                     if fn.type == "identifier":
-                        return fn.text.decode()
+                        return str(fn.text.decode())
                     if fn.type == "attribute":
                         attr = fn.child_by_field_name("attribute")
-                        return attr.text.decode() if attr else fn.text.decode()
+                        return str(attr.text.decode()) if attr else str(fn.text.decode())
         return None
 
     def _py_depends_target(self, param_node: Any) -> str | None:
@@ -465,17 +465,17 @@ class PythonParser(TreeSitterBase, LanguageParser):
         fn_node = value_node.child_by_field_name("function")
         if not fn_node or fn_node.type != "identifier":
             return None
-        if fn_node.text.decode() != "Depends":
+        if str(fn_node.text.decode()) != "Depends":
             return None
         args = value_node.child_by_field_name("arguments")
         if not args:
             return None
         for arg in args.named_children:
             if arg.type == "identifier":
-                return arg.text.decode()
+                return str(arg.text.decode())
             if arg.type == "attribute":
                 attr = arg.child_by_field_name("attribute")
-                return attr.text.decode() if attr else None
+                return str(attr.text.decode()) if attr else None
         return None
 
     # ------------------------------------------------------------------
@@ -659,7 +659,7 @@ class PythonParser(TreeSitterBase, LanguageParser):
             params_node = node.child_by_field_name("parameters")
             if not params_node:
                 continue
-            params: list[dict] = []
+            params: list[dict[str, Any]] = []
             for param in params_node.children:
                 if param.type in (",", "(", ")", "/", "*"):
                     continue
@@ -669,7 +669,7 @@ class PythonParser(TreeSitterBase, LanguageParser):
             if params:
                 fn_node.metadata["parameters"] = params
 
-    def _py_param_info(self, param_node: Any) -> dict | None:
+    def _py_param_info(self, param_node: Any) -> dict[str, Any] | None:
         """Extract name and type annotation from a Python parameter AST node.
 
         Args:
