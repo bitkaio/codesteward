@@ -1,0 +1,72 @@
+# Codesteward MCP Graph Server
+# Multi-stage build — keeps the final image lean.
+#
+# Build targets:
+#   default (graph-all)  — all 14 tree-sitter language grammars
+#   graph-core           — TypeScript / JavaScript / Python / Java only
+#   base                 — no tree-sitter (Neo4j query-only mode)
+#
+# Usage:
+#   docker build -t codesteward-mcp .
+#   docker run -p 3000:3000 \
+#     -e NEO4J_URI=bolt://neo4j:7687 \
+#     -e NEO4J_USER=neo4j \
+#     -e NEO4J_PASSWORD=secret \
+#     codesteward-mcp
+
+ARG PYTHON_VERSION=3.12
+ARG INSTALL_EXTRA=graph-all
+
+# ── builder stage ────────────────────────────────────────────────────────────
+FROM python:${PYTHON_VERSION}-slim AS builder
+
+ARG INSTALL_EXTRA
+
+WORKDIR /build
+
+# System build deps for tree-sitter native extensions
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        build-essential \
+        gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy project files
+COPY pyproject.toml .
+COPY src/ src/
+
+# Install into a prefix we can copy across
+RUN pip install --no-cache-dir --prefix=/install \
+    ".[${INSTALL_EXTRA}]"
+
+# ── final stage ──────────────────────────────────────────────────────────────
+FROM python:${PYTHON_VERSION}-slim
+
+LABEL org.opencontainers.image.title="Codesteward MCP Graph Server"
+LABEL org.opencontainers.image.description="Structural codebase graph server over MCP (HTTP+SSE / stdio)"
+LABEL org.opencontainers.image.source="https://github.com/bitkaio/codesteward-mcp"
+
+# Copy installed packages from builder
+COPY --from=builder /install /usr/local
+
+# Non-root user for security
+RUN useradd --uid 1001 --no-create-home --shell /bin/false codesteward
+USER codesteward
+
+# Workspace directory for build metadata
+RUN mkdir -p /workspace
+VOLUME ["/workspace"]
+
+ENV TRANSPORT=http
+ENV HOST=0.0.0.0
+ENV PORT=3000
+ENV WORKSPACE_BASE=/workspace
+ENV LOG_LEVEL=INFO
+
+EXPOSE 3000
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:3000/health')" \
+    || exit 1
+
+ENTRYPOINT ["codesteward-mcp"]
+CMD ["--transport", "http"]

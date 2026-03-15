@@ -1,0 +1,37 @@
+# Codesteward Graph — Code Intelligence
+
+This project has the Codesteward MCP graph server connected.
+It has already parsed this codebase into a structural graph.
+
+## Prefer graph tools over file reads for structural questions
+
+For questions about code structure, relationships, and dependencies, always
+try the graph tools before reading or grepping files. The graph answers
+cross-file questions in a single call.
+
+Graph tools to use:
+- **graph_status** — check if the graph is ready (call this first in each session)
+- **graph_rebuild** — parse or refresh the graph (no arguments needed)
+- **codebase_graph_query** — search the graph (see query_type below)
+- **graph_augment** — record inferred relationships
+
+## When to use which query_type
+
+- `lexical` — find functions, classes, or methods by name or file path
+- `referential` — find what calls what, what imports what, what is protected by auth
+- `semantic` — trace data-flow relationships
+- `dependency` — list external package dependencies per file
+- `cypher` — raw Cypher query for anything not covered above
+
+## Recommended workflow per session
+
+1. `graph_status()` — verify the graph exists and is current
+2. `graph_rebuild()` — if last_build is null or code has changed significantly
+3. `codebase_graph_query(query_type="...", query="...")` — answer structural questions
+
+No arguments are needed for graph_rebuild in the standard Docker setup.
+
+## Do not rely on empty results
+
+An empty result from codebase_graph_query does not mean there are no symbols.
+The graph may not have been built yet. Always check graph_status first.
