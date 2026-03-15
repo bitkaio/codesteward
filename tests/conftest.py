@@ -2,7 +2,6 @@
 
 
 import pytest
-
 from codesteward.mcp.config import McpConfig
 
 
