@@ -360,8 +360,13 @@ def main() -> None:
         # Stdio: synchronous run on the current thread
         mcp.run(transport="stdio")
     elif transport == "sse":
-        # SSE: Server-Sent Events transport
-        mcp.run(transport="sse", host=host, port=port)
+        # SSE: Server-Sent Events transport via uvicorn
+        uvicorn.run(
+            mcp.sse_app(),
+            host=host,
+            port=port,
+            log_level=cfg.log_level.lower(),
+        )
     else:
         # HTTP: Streamable HTTP via uvicorn
         app = mcp.streamable_http_app()
