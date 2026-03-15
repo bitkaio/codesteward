@@ -1,0 +1,142 @@
+# Codesteward MCP — GitLab CI/CD pipeline
+#
+# This repo is a read-only mirror of the GitHub source.  The pipeline:
+#   1. Runs tests on every push/MR
+#   2. Builds both PyPI packages on every push (artifacts kept for 1 week)
+#   3. Publishes both packages to PyPI on version tags  (v*)
+#   4. Creates a GitHub release with dist artifacts attached on version tags
+#
+# Required GitLab CI/CD variables (Settings → CI/CD → Variables):
+#   PYPI_TOKEN        — PyPI API token (masked, protected)
+#   GH_RELEASE_TOKEN  — GitHub PAT with contents:write on this repo (masked, protected)
+#
+# Optional (hard-coded defaults shown):
+#   GH_REPO           — GitHub repo slug, e.g. "bitkaio/codesteward-mcp"
+#   GH_CLI_VERSION    — gh CLI version to download, e.g. "2.63.2"
+
+variables:
+  UV_VERSION: "0.5"
+  PYTHON_VERSION: "3.12"
+  GH_REPO: "bitkaio/codesteward-mcp"
+  GH_CLI_VERSION: "2.63.2"
+  # Cache pip/uv downloads across jobs
+  UV_CACHE_DIR: "$CI_PROJECT_DIR/.uv-cache"
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.pip-cache"
+
+stages:
+  - test
+  - build
+  - publish
+  - release
+
+# ── Default settings ──────────────────────────────────────────────────────────
+
+default:
+  image: python:3.12-slim
+  before_script:
+    - pip install --quiet uv==${UV_VERSION} || pip install --quiet uv
+    - uv sync --all-packages --frozen
+  cache:
+    key: "$CI_COMMIT_REF_SLUG-py${PYTHON_VERSION}"
+    paths:
+      - .uv-cache/
+      - .venv/
+
+# ── Test ──────────────────────────────────────────────────────────────────────
+
+test:
+  stage: test
+  script:
+    - uv run pytest tests/ -v
+  coverage: '/TOTAL.*\s+(\d+%)$/'
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+    when: always
+    expire_in: 1 week
+
+lint:
+  stage: test
+  script:
+    - uv run ruff check packages/ tests/
+    - uv run mypy packages/codesteward-graph/src packages/codesteward-mcp/src
+  allow_failure: true
+
+# ── Build ─────────────────────────────────────────────────────────────────────
+
+.build_pkg: &build_pkg
+  stage: build
+  before_script:
+    - pip install --quiet uv==${UV_VERSION} || pip install --quiet uv
+  artifacts:
+    paths:
+      - "packages/*/dist/"
+    expire_in: 1 week
+
+build:graph:
+  <<: *build_pkg
+  script:
+    - uv build packages/codesteward-graph --out-dir packages/codesteward-graph/dist
+
+build:mcp:
+  <<: *build_pkg
+  script:
+    - uv build packages/codesteward-mcp --out-dir packages/codesteward-mcp/dist
+
+# ── Publish to PyPI ───────────────────────────────────────────────────────────
+# Triggered only on tags matching v* (e.g. v0.1.0, v1.2.3)
+
+publish:pypi:
+  stage: publish
+  before_script:
+    - pip install --quiet uv==${UV_VERSION} || pip install --quiet uv
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+/'
+  needs:
+    - build:graph
+    - build:mcp
+  script:
+    # Publish graph library first (mcp depends on it)
+    - uv publish packages/codesteward-graph/dist/* --token "$PYPI_TOKEN"
+    # Small delay so PyPI indexes codesteward-graph before mcp upload triggers the dep check
+    - sleep 15
+    - uv publish packages/codesteward-mcp/dist/* --token "$PYPI_TOKEN"
+  environment:
+    name: pypi
+    url: https://pypi.org/project/codesteward-mcp/
+
+# ── Create GitHub release ─────────────────────────────────────────────────────
+# Downloads the gh CLI binary, authenticates with GH_RELEASE_TOKEN, and creates
+# a release on the GitHub repository with both dist archives attached.
+
+release:github:
+  stage: release
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache curl tar
+    - |
+      curl -sL \
+        "https://github.com/cli/cli/releases/download/v${GH_CLI_VERSION}/gh_${GH_CLI_VERSION}_linux_amd64.tar.gz" \
+        -o gh.tar.gz
+    - tar -xzf gh.tar.gz
+    - mv "gh_${GH_CLI_VERSION}_linux_amd64/bin/gh" /usr/local/bin/gh
+    - gh --version
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+/'
+  needs:
+    - publish:pypi
+  variables:
+    GH_TOKEN: "$GH_RELEASE_TOKEN"
+  script:
+    - |
+      gh release create "$CI_COMMIT_TAG" \
+        --repo "$GH_REPO" \
+        --title "codesteward $CI_COMMIT_TAG" \
+        --generate-notes \
+        packages/codesteward-graph/dist/* \
+        packages/codesteward-mcp/dist/*
+  environment:
+    name: github-release
+    url: https://github.com/$GH_REPO/releases

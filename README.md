@@ -15,6 +15,27 @@ Supports **14 languages** via tree-sitter AST parsing: TypeScript, JavaScript, P
 
 ## Quick Start
 
+### Zero-install (stdio via uvx)
+
+No Docker, no Neo4j, no pre-install.  Add this to your MCP client config
+(Claude Code, Cursor, Windsurf, etc.):
+
+```json
+{
+  "mcpServers": {
+    "codesteward-graph": {
+      "command": "uvx",
+      "args": ["codesteward-mcp[graph-all]", "--transport", "stdio"]
+    }
+  }
+}
+```
+
+Requires [uv](https://docs.astral.sh/uv/).  `uvx` downloads and caches the
+package on first run.  The graph is re-built each session (no Neo4j persistence).
+
+### Docker + Neo4j (persistent graph)
+
 ```bash
 # 1. Point the server at your repository
 export REPO_PATH=/path/to/your/repository    # or add to .env
@@ -22,27 +43,13 @@ export REPO_PATH=/path/to/your/repository    # or add to .env
 # 2. Start Neo4j + MCP server
 docker compose up -d
 
-# 3. Copy the right config files into the repo you want to analyse
-cp templates/.mcp.json /path/to/your/repository/       # Claude Code
-cp templates/CLAUDE.md /path/to/your/repository/       # Claude Code instructions
+# 3. Copy config files into the repo you want to analyse
+cp templates/.mcp.json /path/to/your/repository/
+cp templates/CLAUDE.md /path/to/your/repository/
 ```
 
 The server runs at **`http://localhost:3000/mcp`**.  Call `graph_rebuild()` with
 no arguments — the server already knows the repo path from the volume mount.
-
-For full setup instructions covering Claude Code, Cursor, Windsurf, Gemini CLI,
-VS Code / GitHub Copilot, Continue.dev, and Claude Desktop, see
-**[AGENT_SETUP.md](AGENT_SETUP.md)**.
-
-### Without Docker (stub / parse-only mode)
-
-```bash
-uv pip install -e ".[graph]"
-codesteward-mcp --transport http --port 3000
-```
-
-`graph_rebuild` parses and returns counts; `codebase_graph_query` returns
-`stub: true` without Neo4j.
 
 ### Manual Docker run
 
@@ -53,6 +60,10 @@ docker run -p 3000:3000 \
   -e NEO4J_PASSWORD=secret \
   codesteward-mcp
 ```
+
+For full setup instructions covering Claude Code, Cursor, Windsurf, Gemini CLI,
+VS Code / GitHub Copilot, Continue.dev, and Claude Desktop, see
+**[AGENT_SETUP.md](AGENT_SETUP.md)**.
 
 ## Installation
 

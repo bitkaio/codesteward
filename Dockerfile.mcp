@@ -30,13 +30,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         gcc \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy project files
+# Copy workspace and package sources
 COPY pyproject.toml .
-COPY src/ src/
+COPY packages/ packages/
 
-# Install into a prefix we can copy across
+# Install the MCP package (and its codesteward-graph dependency) into a prefix
+# we can copy across.  Both packages are workspace members, so pip resolves them
+# from the local packages/ tree without hitting PyPI.
 RUN pip install --no-cache-dir --prefix=/install \
-    ".[${INSTALL_EXTRA}]"
+    "./packages/codesteward-graph[${INSTALL_EXTRA}]" \
+    "./packages/codesteward-mcp"
 
 # ── final stage ──────────────────────────────────────────────────────────────
 FROM python:${PYTHON_VERSION}-slim

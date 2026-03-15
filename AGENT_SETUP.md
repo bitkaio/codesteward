@@ -21,6 +21,34 @@ tool and drop them into the root of the repository you want to analyse.
 
 ---
 
+## Choosing a transport
+
+**HTTP (Docker — recommended for most users)**
+The server runs as a persistent process. All tools connect to `http://localhost:3000/mcp`.
+Neo4j is included in the Docker setup for persistent graph storage.
+
+**Stdio (uvx — zero install, no Docker)**
+The MCP client starts the server as a subprocess on demand.
+No Docker, no Neo4j, no background process — the graph is re-built each session (stub mode).
+Install once with `uv` and add this to any client config:
+
+```json
+{
+  "mcpServers": {
+    "codesteward-graph": {
+      "command": "uvx",
+      "args": ["codesteward-mcp[graph-all]", "--transport", "stdio"]
+    }
+  }
+}
+```
+
+Use HTTP+Docker when you want persistent graph storage across sessions and full
+Neo4j query support.  Use stdio+uvx when you just want structural parsing without
+managing any infrastructure.
+
+---
+
 ## Step 1 — Start the server
 
 ```bash
@@ -214,27 +242,33 @@ Restart Claude Desktop after saving.
 
 ---
 
-### Stdio transport (any tool, no HTTP server)
+### Stdio transport — uvx (zero install, any tool)
 
-If you prefer to run the server as a subprocess rather than a persistent HTTP
-service, use stdio transport.  No `docker compose` needed — the tool starts the
-server on demand.
+The simplest option: no Docker, no Neo4j, no pre-install.
+`uvx` downloads and caches the package on first run.
 
 ```json
 {
   "mcpServers": {
     "codesteward-graph": {
-      "command": "codesteward-mcp",
-      "args": ["--transport", "stdio", "--config", "/path/to/mcp-local.yaml"]
+      "command": "uvx",
+      "args": ["codesteward-mcp[graph-all]", "--transport", "stdio"]
     }
   }
 }
 ```
 
-This requires `codesteward-mcp` to be installed and on the system `PATH`:
+**Requires:** [uv](https://docs.astral.sh/uv/) installed on the system.
+Works on macOS, Linux, and Windows.  The graph is re-built each session (no
+Neo4j persistence), which is fine for most structural analysis tasks.
+
+For a persistent graph across sessions, switch to the HTTP+Docker setup.
+
+**Manual install alternative** (if `uvx` is not available):
 
 ```bash
 uv pip install "codesteward-mcp[graph-all]"
+# then use "command": "codesteward-mcp" in the config above
 ```
 
 ---
@@ -304,6 +338,19 @@ instructions.
 
 ---
 
+### OpenAI Codex — `AGENTS.md`
+
+```bash
+cp /path/to/codesteward-mcp/templates/AGENTS.md .
+# or append to an existing AGENTS.md:
+cat /path/to/codesteward-mcp/templates/AGENTS.md >> AGENTS.md
+```
+
+Codex reads `AGENTS.md` from the project root on every session, the same way
+Claude Code reads `CLAUDE.md`.
+
+---
+
 ## Step 4 — Verify the connection
 
 Ask your AI tool a structural question about the codebase:
@@ -337,6 +384,7 @@ root and that the MCP server config is in the right location for your tool.
 | `templates/GEMINI.md` | `GEMINI.md` | Gemini CLI instructions |
 | `templates/.windsurfrules` | `.windsurfrules` | Windsurf instructions |
 | `templates/copilot-instructions.md` | `.github/copilot-instructions.md` | GitHub Copilot instructions |
+| `templates/AGENTS.md` | `AGENTS.md` | OpenAI Codex instructions |
 
 All MCP config files point to `http://localhost:3000/mcp`.  If you run the
 server on a different host or port, update the `url` field accordingly.
