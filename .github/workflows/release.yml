@@ -7,10 +7,11 @@
 #   4. build-docker  — build & push multi-arch image to ghcr.io (runs in parallel with publish-pypi)
 #   5. release       — create GitHub release, attach dist archives + Docker image reference
 #
-# Required repository secrets (Settings → Secrets and variables → Actions):
-#   PYPI_TOKEN   — PyPI API token with upload scope
-#                  (alternative: set up PyPI Trusted Publishing and remove the
-#                   password: ${{ secrets.PYPI_TOKEN }} lines — no secret needed)
+# PyPI publishing uses OIDC Trusted Publishing — no API token secret needed.
+# Configure a Trusted Publisher on PyPI for each package:
+#   PyPI → your project → Publishing → Add a new publisher
+#   Publisher: GitHub Actions
+#   Owner: bitkaio  |  Repository: codesteward-mcp  |  Workflow: release.yml  |  Environment: pypi
 #
 # The Docker image is published to ghcr.io using GITHUB_TOKEN (no extra secret).
 # Make sure the repository's "Packages" permissions allow write access:
@@ -78,6 +79,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: build-packages
     environment: pypi
+    permissions:
+      id-token: write   # required for OIDC Trusted Publisher authentication
 
     steps:
       - name: Download dist artifacts
@@ -90,7 +93,6 @@ jobs:
       - name: Publish codesteward-graph
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          password: ${{ secrets.PYPI_TOKEN }}
           packages-dir: dist/codesteward-graph/dist/
 
       # Give PyPI time to index codesteward-graph before the dependent package
@@ -101,7 +103,6 @@ jobs:
       - name: Publish codesteward-mcp
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          password: ${{ secrets.PYPI_TOKEN }}
           packages-dir: dist/codesteward-mcp/dist/
 
   # ── Build & push Docker image to ghcr.io ─────────────────────────────────────
