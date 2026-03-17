@@ -64,7 +64,7 @@ async def tool_taint_analysis(
             stderr=asyncio.subprocess.PIPE,
         )
         stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=300)
-    except asyncio.TimeoutError:
+    except TimeoutError:
         return yaml.safe_dump({"error": "taint analysis timed out after 300s"})
     except Exception as exc:
         log.error("taint_analysis_failed", error=str(exc))
