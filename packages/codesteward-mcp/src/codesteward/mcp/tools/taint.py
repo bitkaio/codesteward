@@ -39,6 +39,12 @@ async def tool_taint_analysis(
         duration_ms. TAINT_FLOW edges are written to Neo4j by the binary so
         subsequent ``codebase_graph_query`` semantic queries return results.
     """
+    if not cfg.neo4j_available:
+        return yaml.safe_dump({
+            "error": "taint_analysis requires Neo4j — set NEO4J_PASSWORD to enable it",
+            "neo4j_connected": False,
+        })
+
     args = [
         binary,
         "--neo4j-uri",      cfg.neo4j_uri,
